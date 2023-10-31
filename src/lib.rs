@@ -168,11 +168,28 @@ impl LogFile {
             &mut hasher.finalize().to_le_bytes()
         };
 
+        // [https://pages.cs.wisc.edu/~remzi/OSTEP/file-journaling.pdf])
+        //
+        // The basic write-ahead logging protocol:
+        //
+        //  1. Journal write: entry length (TxB) and entry
+        //  2. Journal commit: hash (TxE)
+        //  3. Checkpoint: the data itself
+        //
+        // TxB and TxE refer, respectively, to "transaction begin" and "transaction end".
+        //
+        // Only steps (1) and (2) are handled by the write-ahead log. Step (3) is handled by the
+        // user of the write-ahead log. Writes that occur in step (1) must be completed (i.e.,
+        // flushed) before step (2). Step (2) must be an atomic write. According to various
+        // sources, disks can be assumed to support atomic sector (512 bytes) writes. A CRC32 hash
+        // is 4 bytes, so we can be sure that it can be committed atomically.
         let result = self
             .file
             .write_all(&mut (entry.len() as u64).to_le_bytes())
             .and_then(|_| self.file.write_all(entry))
-            .and_then(|_| self.file.write_all(hash));
+            .and_then(|_| self.file.flush()) // (1) complete journal write
+            .and_then(|_| self.file.write_all(hash))
+            .and_then(|_| self.file.flush()); // (2) complete journal commit
 
         if result.is_ok() {
             self.len += 1;
