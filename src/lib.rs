@@ -26,7 +26,7 @@
 //!     log.write(&mut b"log entry".to_vec()).unwrap();
 //!     log.write(&mut b"foobar".to_vec()).unwrap();
 //!     log.write(&mut b"123".to_vec()).unwrap();
-//!    
+//!
 //!     // flush to disk
 //!     log.flush().unwrap();
 //! }
@@ -244,7 +244,7 @@ impl LogFile {
         self.seek(new_start_index)?;
 
         let mut temp_file_path = std::env::temp_dir().to_path_buf();
-        temp_file_path.set_file_name(format!("log-{}", rand::random::<u32>()));
+        temp_file_path.push(format!("log-{}", rand::random::<u32>()));
         let mut new_file = AdvisoryFileLock::new(
             temp_file_path.as_path(),
             advisory_lock::FileLockMode::Exclusive,
