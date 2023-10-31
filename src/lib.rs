@@ -157,10 +157,10 @@ impl LogFile {
     }
 
     /// Write the given log entry to the end of the log
-    pub fn write<R: AsMut<[u8]>>(&mut self, entry: &mut R) -> io::Result<()> {
+    pub fn write<R: AsRef<[u8]>>(&mut self, entry: &R) -> io::Result<()> {
         let end_pos = self.file.seek(SeekFrom::End(0))?;
 
-        let entry = entry.as_mut();
+        let entry = entry.as_ref();
 
         let hash = {
             let mut hasher = crc32fast::Hasher::new();
