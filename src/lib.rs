@@ -125,6 +125,11 @@ impl LogFile {
         self.first_index + self.len - 1
     }
 
+    /// Returns the number of entries in the log.
+    pub fn len(&self) -> u64 {
+        self.len
+    }
+
     /// Iterate through the log
     pub fn iter<'s, R: RangeBounds<u64>>(
         &'s mut self,
